@@ -2,10 +2,15 @@ package com.example.jh.gank.activity;
 
 import android.animation.Animator;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -14,24 +19,44 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.afollestad.materialdialogs.color.ColorChooserDialog;
 import com.example.jh.gank.R;
 import com.example.jh.gank.base.BaseActivity;
+import com.example.jh.gank.bean.GanHuo;
 import com.example.jh.gank.event.SkinChangeEvent;
+import com.example.jh.gank.fragment.AllFragment;
+import com.example.jh.gank.fragment.CommonFragment;
+import com.example.jh.gank.fragment.FuLiFragment;
+import com.example.jh.gank.http.CallBack;
+import com.example.jh.gank.http.RequestManager;
 import com.example.jh.gank.theme.ColorRelativeLayout;
 import com.example.jh.gank.theme.ColorUiUtil;
 import com.example.jh.gank.theme.ColorView;
 import com.example.jh.gank.theme.Theme;
 import com.example.jh.gank.utils.PreUtils;
+import com.example.jh.gank.utils.SystemUtils;
 import com.example.jh.gank.utils.ThemeUtils;
 import com.example.jh.gank.widget.ResideLayout;
+import com.mikepenz.fontawesome_typeface_library.FontAwesome;
+import com.mikepenz.foundation_icons_typeface_library.FoundationIcons;
+import com.mikepenz.iconics.IconicsDrawable;
+import com.mikepenz.iconics.typeface.IIcon;
+import com.mikepenz.material_design_iconic_typeface_library.MaterialDesignIconic;
+import com.squareup.picasso.Picasso;
 
 import org.greenrobot.eventbus.EventBus;
+
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import me.xiaopan.android.content.res.DimenUtils;
+import me.xiaopan.android.preference.PreferencesUtils;
 
 /**
  * 2017/8/3 学习Gank,人家的app,一点点学习，周末写完！
@@ -40,7 +65,7 @@ import butterknife.OnClick;
  * 2、功能实现
  * 3、
  */
-public class MainActivity extends BaseActivity implements ColorChooserDialog.ColorCallback  {
+public class MainActivity extends BaseActivity implements ColorChooserDialog.ColorCallback {
 
     @Bind(R.id.avatar)
     ImageView mAvatar;
@@ -83,35 +108,211 @@ public class MainActivity extends BaseActivity implements ColorChooserDialog.Col
     @Bind(R.id.resideLayout)
     ResideLayout mResideLayout;
 
+    private FragmentManager fragmentManager;
+    private String currentFragmentTag;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        fragmentManager = getSupportFragmentManager();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            mStatusBar.setVisibility(View.VISIBLE);
+            mStatusBar.getLayoutParams().height = SystemUtils.getStatusHeight(this);
+            mStatusBar.setLayoutParams(mStatusBar.getLayoutParams());
+        } else {
+            mStatusBar.setVisibility(View.GONE);
+        }
+        // 设置图片！
+        setIconDrawable(mAll, MaterialDesignIconic.Icon.gmi_view_comfy);
+        setIconDrawable(mFuli, MaterialDesignIconic.Icon.gmi_mood);
+        setIconDrawable(mAndroid, MaterialDesignIconic.Icon.gmi_android);
+        setIconDrawable(mIos, MaterialDesignIconic.Icon.gmi_apple);
+        setIconDrawable(mVideo, MaterialDesignIconic.Icon.gmi_collection_video);
+        setIconDrawable(mFront, MaterialDesignIconic.Icon.gmi_language_javascript);
+        setIconDrawable(mResource, FontAwesome.Icon.faw_location_arrow);
+        setIconDrawable(mApp, MaterialDesignIconic.Icon.gmi_apps);
+        setIconDrawable(mAbout, MaterialDesignIconic.Icon.gmi_account);
+        setIconDrawable(mTheme, MaterialDesignIconic.Icon.gmi_palette);
+        setIconDrawable(mMore, MaterialDesignIconic.Icon.gmi_more);
+
+        // 本地设置头像
+        Picasso.with(MainActivity.this)
+                .load(R.mipmap.avatar)
+                .placeholder(new IconicsDrawable(this)
+                        .icon(FoundationIcons.Icon.fou_photo)
+                        .color(Color.GRAY)
+                        .backgroundColor(Color.WHITE)
+                        .roundedCornersDp(40)
+                        .paddingDp(15)
+                        .sizeDp(75))
+                .transform(new CropCircleTransformation())
+                .into(mAvatar);
+        // 设置底部描述
+        RequestManager.get(getName(), "http://gank.io/api/data/休息视频/1/1", true, new CallBack<List<GanHuo>>() {
+            @Override
+            public void onSuccess(List<GanHuo> result) {
+                mDesc.setText(result.get(0).getDesc());
+            }
+        });
+
+        // 网络请求加载头像
+        RequestManager.get(getName(), "http://gank.io/api/data/福利/1/1", true, new CallBack<List<GanHuo>>() {
+            @Override
+            public void onSuccess(List<GanHuo> result) {
+                Picasso.with(MainActivity.this)
+                        .load(result.get(0).getUrl())
+                        .placeholder(new IconicsDrawable(MainActivity.this)
+                                .icon(FoundationIcons.Icon.fou_photo)
+                                .color(Color.GRAY)
+                                .backgroundColor(Color.WHITE)
+                                .roundedCornersDp(40)
+                                .paddingDp(15)
+                                .sizeDp(75))
+                        .transform(new CropCircleTransformation())
+                        .into(mAvatar);
+            }
+        });
+
+
+        if (PreferencesUtils.getBoolean(this, "isFirst", true)) {
+            mResideLayout.openPane();
+            PreferencesUtils.putBoolean(this, "isFirst", false);
+        }
+        mIcon.setImageDrawable(new IconicsDrawable(this).color(Color.WHITE).icon(MaterialDesignIconic.Icon.gmi_view_comfy).sizeDp(20));
+        mTitle.setText("干货集中营");
+        // 显示fragment内容
+        switchFragment("all");
     }
 
-    @OnClick({R.id.avatar, R.id.all, R.id.fuli, R.id.android, R.id.ios, R.id.video, R.id.front, R.id.resource, R.id.app, R.id.more, R.id.theme, R.id.icon})
+    private void setIconDrawable(TextView view, IIcon icon) {
+        view.setCompoundDrawablesWithIntrinsicBounds(new IconicsDrawable(this)
+                        .icon(icon)
+                        .color(Color.WHITE)
+                        .sizeDp(16),
+                null, null, null);
+        view.setCompoundDrawablePadding(DimenUtils.dp2px(this, 10));  // DimenUtils 引入jar包
+    }
+
+    // 跳转fragment
+    private void switchFragment(String name) {
+        if (currentFragmentTag != null && currentFragmentTag.equals(name))
+            return;
+        FragmentTransaction ft = fragmentManager.beginTransaction();
+        ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_CLOSE);
+        Fragment currentFragment = fragmentManager.findFragmentByTag(currentFragmentTag);
+        if (currentFragment != null) {
+            ft.hide(currentFragment);
+        }
+        Fragment foundFragment = fragmentManager.findFragmentByTag(name);
+
+        if (foundFragment == null) {
+            if (name.equals("all")) {
+                foundFragment = new AllFragment();
+            } else if (name.equals("福利")) {
+                foundFragment = new FuLiFragment();
+            } else {
+                foundFragment = CommonFragment.newInstance(name);
+            }
+        }
+
+        if (foundFragment == null) {
+
+        } else if (foundFragment.isAdded()) {
+            ft.show(foundFragment);
+        } else {
+            ft.add(R.id.container, foundFragment, name);
+        }
+        ft.commit();
+        currentFragmentTag = name;
+    }
+
+    // 返回键
+    @Override
+    public void onBackPressed() {
+        if (mResideLayout.isOpen()) {
+            mResideLayout.closePane();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+
+
+    @OnClick({R.id.avatar, R.id.all, R.id.fuli, R.id.android,
+            R.id.ios, R.id.video, R.id.front, R.id.resource,
+            R.id.app, R.id.more, R.id.about, R.id.theme, R.id.icon})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.avatar:
+                Toast.makeText(this, "设置头像", Toast.LENGTH_SHORT).show();
                 break;
             case R.id.all:
+                mResideLayout.closePane();
+                mIcon.setImageDrawable(new IconicsDrawable(this).color(Color.WHITE).icon(MaterialDesignIconic.Icon.gmi_view_comfy).sizeDp(20));
+                mTitle.setText(R.string.app_name);
+                switchFragment("all");
                 break;
             case R.id.fuli:
+                mResideLayout.closePane();
+                mIcon.setImageDrawable(new IconicsDrawable(this).color(Color.WHITE).icon(MaterialDesignIconic.Icon.gmi_mood).sizeDp(20));
+                mTitle.setText(R.string.fuli);
+                switchFragment("福利");
                 break;
             case R.id.android:
+                mResideLayout.closePane();
+                mIcon.setImageDrawable(new IconicsDrawable(this).color(Color.WHITE).icon(MaterialDesignIconic.Icon.gmi_android).sizeDp(20));
+                mTitle.setText(R.string.android);
+                switchFragment("Android");
                 break;
             case R.id.ios:
+                mResideLayout.closePane();
+                mIcon.setImageDrawable(new IconicsDrawable(this).color(Color.WHITE).icon(MaterialDesignIconic.Icon.gmi_apple).sizeDp(20));
+                mTitle.setText(R.string.ios);
+                switchFragment("iOS");
                 break;
             case R.id.video:
+                mResideLayout.closePane();
+                mIcon.setImageDrawable(new IconicsDrawable(this).color(Color.WHITE).icon(MaterialDesignIconic.Icon.gmi_collection_video).sizeDp(20));
+                mTitle.setText(R.string.video);
+                switchFragment("休息视频");
                 break;
             case R.id.front:
+                mResideLayout.closePane();
+                mIcon.setImageDrawable(new IconicsDrawable(this).color(Color.WHITE).icon(MaterialDesignIconic.Icon.gmi_language_javascript).sizeDp(20));
+                mTitle.setText(R.string.front);
+                switchFragment("前端");
                 break;
             case R.id.resource:
+                mResideLayout.closePane();
+                mIcon.setImageDrawable(new IconicsDrawable(this).color(Color.WHITE).icon(FontAwesome.Icon.faw_location_arrow).sizeDp(20));
+                mTitle.setText(R.string.resource);
+                switchFragment("拓展资源");
                 break;
             case R.id.app:
+                mResideLayout.closePane();
+                mIcon.setImageDrawable(new IconicsDrawable(this).color(Color.WHITE).icon(MaterialDesignIconic.Icon.gmi_apps).sizeDp(20));
+                mTitle.setText(R.string.app);
+                switchFragment("App");
                 break;
             case R.id.more:
+                mResideLayout.closePane();
+                mIcon.setImageDrawable(new IconicsDrawable(this).color(Color.WHITE).icon(MaterialDesignIconic.Icon.gmi_more).sizeDp(20));
+                mTitle.setText(R.string.more);
+                switchFragment("瞎推荐");
+                break;
+            case R.id.about:
+                new MaterialDialog.Builder(this)
+                        .title(R.string.about)
+                        .icon(new IconicsDrawable(this)
+                                .color(ThemeUtils.getThemeColor(this, R.attr.colorPrimary))
+                                .icon(MaterialDesignIconic.Icon.gmi_account)
+                                .sizeDp(20))
+                        .content(R.string.about_me)
+                        .positiveText(R.string.close)
+                        .show();
                 break;
             case R.id.theme:
                 new ColorChooserDialog.Builder(this, R.string.theme)
@@ -123,6 +324,7 @@ public class MainActivity extends BaseActivity implements ColorChooserDialog.Col
                         .show();
                 break;
             case R.id.icon:
+                mResideLayout.openPane();
                 break;
         }
     }

@@ -1,5 +1,6 @@
 package com.example.jh.gank.widget;
 
+
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -30,11 +31,6 @@ import android.view.accessibility.AccessibilityEvent;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-
-/**
- * Created by jinhui on 2017/8/3.
- * 邮箱: 1004260403@qq.com
- */
 
 public class ResideLayout extends ViewGroup {
     private static final String TAG = "ResideLayout";

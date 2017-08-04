@@ -51,6 +51,13 @@ public abstract class BaseFragment extends Fragment {
         return mRootView;
     }
 
+    private void lazyFetchDataIfPrepared() {
+        if(getUserVisibleHint() && !hasFetchData && isViewPrepared){
+            hasFetchData = true;
+            lazyFetchData();
+        }
+    }
+
     // v4.Fragment 中的方法
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
@@ -58,13 +65,6 @@ public abstract class BaseFragment extends Fragment {
         Log.e("TAG", "setUserVisibleHint 方法执行");
         if(isVisibleToUser){
             lazyFetchDataIfPrepared();
-        }
-    }
-
-    private void lazyFetchDataIfPrepared() {
-        if(getUserVisibleHint() && !hasFetchData && isViewPrepared){
-            hasFetchData = true;
-            lazyFetchData();
         }
     }
 

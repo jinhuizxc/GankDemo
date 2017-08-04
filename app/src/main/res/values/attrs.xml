@@ -35,6 +35,7 @@
         </attr>
     </declare-styleable>
 
+    <!--多种布局层叠-->
     <declare-styleable name="MultipleStatusView">
         <attr name="loadingView" format="reference"/>
         <attr name="errorView" format="reference"/>
@@ -42,6 +43,7 @@
         <attr name="noNetworkView" format="reference"/>
         <attr name="contentView" format="reference"/>
     </declare-styleable>
+
 
     <declare-styleable name="AVLoadingIndicatorView">
         <attr name="minWidth" format="dimension"/>

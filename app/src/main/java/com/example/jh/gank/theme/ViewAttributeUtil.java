@@ -4,6 +4,8 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 /**
  * Created by jinhui on 2017/8/3.
@@ -31,11 +33,73 @@ public class ViewAttributeUtil {
         return getAttributeValue(attr, android.R.attr.background);
     }
 
+    // 应用背景图片
     public static void applyBackgroundDrawable(ColorUiInterface ci, Resources.Theme theme, int paramInt) {
         TypedArray ta = theme.obtainStyledAttributes(new int[]{paramInt});
         Drawable drawable = ta.getDrawable(0);
         if (null != ci) {
             (ci.getView()).setBackgroundDrawable(drawable);
+        }
+        ta.recycle();
+    }
+
+    public static int getCheckMarkAttribute(AttributeSet attr) {
+        return getAttributeValue(attr, android.R.attr.checkMark);
+    }
+
+    public static int getSrcAttribute(AttributeSet attr) {
+        return getAttributeValue(attr, android.R.attr.src);
+    }
+
+    public static int getTextApperanceAttribute(AttributeSet attr) {
+        return getAttributeValue(attr, android.R.attr.textAppearance);
+    }
+
+    public static int getDividerAttribute(AttributeSet attr) {
+        return getAttributeValue(attr, android.R.attr.divider);
+    }
+
+    public static int getTextColorAttribute(AttributeSet attr) {
+        return getAttributeValue(attr, android.R.attr.textColor);
+    }
+
+    public static int getTextLinkColorAttribute(AttributeSet attr) {
+        return getAttributeValue(attr, android.R.attr.textColorLink);
+    }
+
+
+    public static void applyImageDrawable(ColorUiInterface ci, Resources.Theme theme, int paramInt) {
+        TypedArray ta = theme.obtainStyledAttributes(new int[]{paramInt});
+        Drawable drawable = ta.getDrawable(0);
+        if (null != ci && ci instanceof ImageView) {
+            ((ImageView) ci.getView()).setImageDrawable(drawable);
+        }
+        ta.recycle();
+    }
+
+    public static void applyTextAppearance(ColorUiInterface ci, Resources.Theme theme, int paramInt) {
+        TypedArray ta = theme.obtainStyledAttributes(new int[]{paramInt});
+        int resourceId = ta.getResourceId(0, 0);
+        if (null != ci && ci instanceof TextView) {
+            ((TextView) ci.getView()).setTextAppearance(ci.getView().getContext(), resourceId);
+        }
+        ta.recycle();
+    }
+
+    public static void applyTextColor(ColorUiInterface ci, Resources.Theme theme, int paramInt) {
+        TypedArray ta = theme.obtainStyledAttributes(new int[]{paramInt});
+        int resourceId = ta.getColor(0, 0);
+        if (null != ci && ci instanceof TextView) {
+            ((TextView) ci.getView()).setTextColor(resourceId);
+        }
+        ta.recycle();
+    }
+
+    public static void applyTextLinkColor(ColorUiInterface ci, Resources.Theme theme, int paramInt) {
+        TypedArray ta = theme.obtainStyledAttributes(new int[]{paramInt});
+        int resourceId = ta.getColor(0, 0);
+        if (null != ci && ci instanceof TextView) {
+            ((TextView) ci.getView()).setLinkTextColor(resourceId);
         }
         ta.recycle();
     }
